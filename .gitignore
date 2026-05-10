@@ -17,3 +17,16 @@ amplocker/
 __MACOSX/
 .idea/
 .vscode/
+
+# AI agent / assistant local state
+# (committed instruction files like AGENTS.md, CLAUDE.md, .cursorrules
+#  are intentionally NOT ignored — they belong in version control.)
+.claude/
+.cursor/
+.opencode/
+.continue/
+.codeium/
+.tabnine/
+.github/copilot/
+.aider*
+
