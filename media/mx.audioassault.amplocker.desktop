@@ -1,0 +1,13 @@
+[Desktop Entry]
+Name=Audio Assault Amp Locker
+GenericName=Amp Locker
+Comment=Guitar Tone Suite
+TryExec=/usr/bin/mx.audioassault.amplocker
+Exec=/usr/bin/mx.audioassault.amplocker
+Terminal=false
+Type=Application
+Keywords=Guitar;Audio;plugin;Amp;Amplifier
+Icon=mx.audioassault.amplocker
+StartupWMClass="Amp Locker"
+Categories=Utility;Audio;
+StartupNotify=false

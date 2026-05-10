@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>mx.audioassault.amplocker</id>
+  <name>Audio Assault Amp Locker</name>
+  <summary>Guitar tone suite</summary>
+
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>LicenseRef-proprietary</project_license>
+
+  <url type="homepage">https://audioassault.mx/</url>
+
+  <developer id="mx.audioassault">
+    <name>Audio Assault</name>
+  </developer>
+
+  <description>
+    <p>
+      Amp Locker is a guitar tone suite featuring multiple amp models,
+      cabinets, IRs and NAM profiles in a single standalone application
+      and VST3 / LV2 plugin.
+    </p>
+  </description>
+
+  <launchable type="desktop-id">mx.audioassault.amplocker.desktop</launchable>
+
+  <categories>
+    <category>AudioVideo</category>
+    <category>Audio</category>
+  </categories>
+
+  <content_rating type="oars-1.1" />
+
+  <releases>
+    <release version="1.5.1a" date="2026-05-08"/>
+  </releases>
+</component>

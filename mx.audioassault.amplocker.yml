@@ -1,0 +1,72 @@
+---
+id: mx.audioassault.amplocker
+runtime: org.freedesktop.Platform
+runtime-version: "25.08"
+sdk: org.freedesktop.Sdk
+command: mx.audioassault.amplocker
+tags:
+  - proprietary
+modules:
+  - name: amplocker
+    buildsystem: simple
+    build-commands:
+      # Standalone binary
+      - install -Dm755 "Amp Locker Standalone" /app/bin/mx.audioassault.amplocker
+
+      # Bundled preset/IR/NAM data — shipped read-only inside the flatpak.
+      # Users sync it once into ~/Audio Assault/PluginData/Audio Assault/AmpLockerData
+      # (which is mounted at runtime via finish-args).
+      - mkdir -p "/app/share/AmpLocker/AmpLockerData"
+      - cp -r AmpLockerData/. "/app/share/AmpLocker/AmpLockerData/"
+
+      # VST3 + LV2 plugins (installed into Flatpak's standard plugin extension dirs)
+      - mkdir -p /app/extensions/Plugins/vst3 /app/extensions/Plugins/lv2
+      - cp -r "Amp Locker.vst3" /app/extensions/Plugins/vst3/
+      - cp -r "Amp Locker.lv2"  /app/extensions/Plugins/lv2/
+
+      # Desktop entry
+      - install -Dm644 mx.audioassault.amplocker.desktop
+        /app/share/applications/mx.audioassault.amplocker.desktop
+
+      # Icons
+      - install -Dm644 icons/128x128/apps/mx.audioassault.amplocker.png
+        /app/share/icons/hicolor/128x128/apps/mx.audioassault.amplocker.png
+      - install -Dm644 icons/256x256/apps/mx.audioassault.amplocker.png
+        /app/share/icons/hicolor/256x256/apps/mx.audioassault.amplocker.png
+      - install -Dm644 icons/512x512/apps/mx.audioassault.amplocker.png
+        /app/share/icons/hicolor/512x512/apps/mx.audioassault.amplocker.png
+
+      # AppStream metainfo
+      - install -Dm644 mx.audioassault.amplocker.metainfo.xml
+        /app/share/metainfo/mx.audioassault.amplocker.metainfo.xml
+    cleanup:
+      - "__MACOSX"
+      - ".DS_Store"
+      - "How To Install.txt"
+    sources:
+      - type: archive
+        path: AmpLockerLinux.zip
+        strip-components: 0
+      - type: file
+        path: media/mx.audioassault.amplocker.desktop
+      - type: file
+        path: mx.audioassault.amplocker.metainfo.xml
+      - type: dir
+        path: media/icons
+        dest: icons
+
+finish-args:
+  - --share=ipc
+  - --socket=x11
+  - --socket=pulseaudio
+  - --device=all
+  - --share=network
+  - --filesystem=xdg-run/pipewire-0
+  - --filesystem=xdg-music:ro
+  - --filesystem=xdg-documents
+  - --filesystem=home/Audio Assault:create
+  # JUCE/LicenseManager stores activation tokens in ~/.config/Audio Assault/.
+  # Without this mount, the flatpak writes to its private XDG_CONFIG_HOME
+  # and the licence appears to "forget itself" between runs.
+  - --filesystem=xdg-config/Audio Assault:create
+  - --env=TMPDIR=/var/tmp

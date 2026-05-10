@@ -1,0 +1,19 @@
+# Upstream proprietary blob — large (~200 MB) and licensed.
+AmpLockerLinux.zip
+
+# Flatpak-builder outputs and caches
+.build/
+.flatpak-builder/
+builddir/
+repo/
+
+# Justfile working dir (unpacked upstream tree)
+amplocker/
+
+# Editor / OS cruft
+*.swp
+*.swo
+.DS_Store
+__MACOSX/
+.idea/
+.vscode/
