@@ -111,6 +111,48 @@ Things **not** to do (already tried, didn't work):
 - The `AmpLockerLinux.zip` source path is relative to the manifest's directory.
   Don't hardcode absolute paths there.
 
+## Audio latency
+
+The standalone is a JUCE app. The binary dlopens `libjack.so.0` and
+`libasound.so.2` directly — it does **not** link PulseAudio. Both libs are
+provided by `org.freedesktop.Platform//25.08`, so JACK and ALSA-direct
+backends Just Work inside the sandbox.
+
+Two finish-args are required for low-latency operation; without them the
+app technically runs but xruns badly at small buffers:
+
+```yaml
+- --talk-name=org.freedesktop.RealtimeKit1
+- --env=PIPEWIRE_LATENCY=128/48000
+```
+
+- **RTKit D-Bus name**: JUCE's audio thread asks RTKit for `SCHED_FIFO`.
+  Inside flatpak that request silently fails unless the well-known name
+  `org.freedesktop.RealtimeKit1` is reachable on the session bus. Symptom
+  of missing it: xruns at any buffer size < ~512 frames even though the
+  host machine has plenty of CPU headroom.
+- **`PIPEWIRE_LATENCY`**: PipeWire's JACK shim reads this env var when a
+  client connects via `libjack.so.0` and uses it as the requested node
+  quantum. `128/48000` ≈ 2.7 ms. Lower for less latency, raise if you
+  hear xruns. The format is `frames/samplerate`.
+
+`--socket=pulseaudio` is kept as a safety-net fallback. JUCE will prefer
+JACK if the user picks it in the audio settings; otherwise it falls back
+through ALSA → Pulse. Remove it only if forcing JACK/ALSA-direct
+unconditionally is desired (and verify the app still produces audio).
+
+The user must still pick **JACK** in Amp Locker's Audio Settings dialog —
+the manifest can't choose the backend for them. ALSA-direct also works
+(via `--device=all` exposing `/dev/snd`) but bypasses PipeWire, so other
+apps lose audio while Amp Locker holds the device.
+
+Things tried that don't help:
+- `--env=JACK_NO_AUDIO_RESERVATION=1`: irrelevant, PipeWire's JACK shim
+  ignores device reservation.
+- Bumping `PIPEWIRE_QUANTUM` instead of `PIPEWIRE_LATENCY`: the former is
+  the global daemon hint, the latter is per-client and is what JUCE/JACK
+  apps actually pick up.
+
 ## Validation commands
 
 ```bash

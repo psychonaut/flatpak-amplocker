@@ -83,3 +83,15 @@ finish-args:
   # JUCE upstream starts honouring XDG_CONFIG_HOME).
   - --filesystem=xdg-config
   - --env=TMPDIR=/var/tmp
+
+  # --- Audio latency tuning ---
+  # JUCE asks RTKit for SCHED_FIFO on its audio thread. Without this D-Bus
+  # name, the request fails silently inside the sandbox and the thread runs
+  # at SCHED_OTHER, causing xruns at small buffer sizes. Required for any
+  # low-latency operation on JACK or ALSA-direct.
+  - --talk-name=org.freedesktop.RealtimeKit1
+  # Request a 128-frame quantum from PipeWire when the JACK shim is used.
+  # ~2.7 ms at 48 kHz. PipeWire honors this when the client connects via
+  # libjack.so.0 from the runtime. Lower this further (e.g. 64) if CPU
+  # headroom allows; raise it if you hear xruns.
+  - --env=PIPEWIRE_LATENCY=128/48000
