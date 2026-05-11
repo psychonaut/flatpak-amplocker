@@ -10,12 +10,16 @@ modules:
   - name: amplocker
     buildsystem: simple
     build-commands:
-      # Standalone binary
-      - install -Dm755 "Amp Locker Standalone" /app/bin/mx.audioassault.amplocker
+      # Standalone binary — installed to libexec; the launcher in /app/bin
+      # wraps it so we can seed AmpLockerData into the user's home on
+      # every launch (see amplocker-wrapper.sh).
+      - install -Dm755 "Amp Locker Standalone" /app/libexec/amplocker
+      - install -Dm755 amplocker-wrapper.sh /app/bin/mx.audioassault.amplocker
 
       # Bundled preset/IR/NAM data — shipped read-only inside the flatpak.
-      # Users sync it once into ~/Audio Assault/PluginData/Audio Assault/AmpLockerData
-      # (which is mounted at runtime via finish-args).
+      # The wrapper script tops this up into
+      # ~/Audio Assault/PluginData/Audio Assault/AmpLockerData/ on every
+      # launch (cp -Rn: never clobber existing files).
       - mkdir -p "/app/share/AmpLocker/AmpLockerData"
       - cp -r AmpLockerData/. "/app/share/AmpLocker/AmpLockerData/"
 
@@ -49,6 +53,8 @@ modules:
         strip-components: 0
       - type: file
         path: media/mx.audioassault.amplocker.desktop
+      - type: file
+        path: media/amplocker-wrapper.sh
       - type: file
         path: mx.audioassault.amplocker.metainfo.xml
       - type: dir

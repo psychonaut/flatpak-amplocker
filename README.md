@@ -43,11 +43,15 @@ Other targets:
 
 ## What's in the box
 
-- **Standalone**: `mx.audioassault.amplocker` (renamed from `Amp Locker Standalone`)
+- **Launcher**: `/app/bin/mx.audioassault.amplocker` — a small shell wrapper
+  (`media/amplocker-wrapper.sh`) that seeds bundled data into the user's home
+  before `exec`-ing the real binary.
+- **Standalone binary**: `/app/libexec/amplocker` (originally `Amp Locker Standalone`)
 - **VST3**: installed to `/app/extensions/Plugins/vst3/Amp Locker.vst3`
 - **LV2**: installed to `/app/extensions/Plugins/lv2/Amp Locker.lv2`
-- **Bundled data** (presets, cabs, IRs, NAMs, `newgfx.dat`): seeded from
-  `/app/share/AmpLocker/AmpLockerData/`
+- **Bundled data** (presets, cabs, IRs, NAMs, `newgfx.dat`): shipped read-only
+  at `/app/share/AmpLocker/AmpLockerData/` and topped up into the user's home
+  on every launch.
 
 ## Runtime data layout
 
@@ -58,6 +62,27 @@ Amp Locker looks for its preset/IR/NAM tree at:
 ```
 
 (Yes, the `Audio Assault` segment appears twice — that's upstream behaviour.)
+
+### First-run seeding
+
+On every launch the wrapper does:
+
+```sh
+cp -Rn /app/share/AmpLocker/AmpLockerData/. \
+       "$HOME/Audio Assault/PluginData/Audio Assault/AmpLockerData/"
+```
+
+`-n` (no-clobber) means:
+
+- **First launch**: the full bundled tree (~177 MB, ~700 files) is copied
+  into the user's home.
+- **Subsequent launches**: only files that don't already exist are copied.
+  Your edits to bundled presets and any extra presets/IRs you've added are
+  preserved.
+- **Caveat**: deleting a bundled file makes it reappear on the next launch.
+  This is the deliberate trade-off of the "always top-up" strategy (vs. a
+  one-shot sentinel marker), so that new presets/IRs that ship with future
+  upstream releases land automatically.
 
 JUCE on Linux hardcodes `~/.config` for `PropertiesFile` /
 `userApplicationDataDirectory` paths, so the manifest mounts the whole
@@ -91,6 +116,7 @@ in the manifest and `AGENTS.md` for the rationale.
 | `mx.audioassault.amplocker.yml`            | Flatpak manifest                                     |
 | `mx.audioassault.amplocker.metainfo.xml`   | AppStream metadata                                   |
 | `media/mx.audioassault.amplocker.desktop`  | Desktop entry                                        |
+| `media/amplocker-wrapper.sh`               | Launcher: seeds `AmpLockerData` into home, then execs the binary |
 | `media/icons/{128,256,512}x*/apps/*.png`   | Application icons                                    |
 | `Justfile`                                 | Task runner                                          |
 | `AGENTS.md`                                | Detailed packaging notes, gotchas, validation tips   |
