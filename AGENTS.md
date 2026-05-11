@@ -118,12 +118,11 @@ The standalone is a JUCE app. The binary dlopens `libjack.so.0` and
 provided by `org.freedesktop.Platform//25.08`, so JACK and ALSA-direct
 backends Just Work inside the sandbox.
 
-Two finish-args are required for low-latency operation; without them the
-app technically runs but xruns badly at small buffers:
+One finish-arg is required for low-latency operation; without it the app
+technically runs but xruns badly at small buffers:
 
 ```yaml
 - --talk-name=org.freedesktop.RealtimeKit1
-- --env=PIPEWIRE_LATENCY=128/48000
 ```
 
 - **RTKit D-Bus name**: JUCE's audio thread asks RTKit for `SCHED_FIFO`.
@@ -131,10 +130,17 @@ app technically runs but xruns badly at small buffers:
   `org.freedesktop.RealtimeKit1` is reachable on the session bus. Symptom
   of missing it: xruns at any buffer size < ~512 frames even though the
   host machine has plenty of CPU headroom.
-- **`PIPEWIRE_LATENCY`**: PipeWire's JACK shim reads this env var when a
-  client connects via `libjack.so.0` and uses it as the requested node
-  quantum. `128/48000` ≈ 2.7 ms. Lower for less latency, raise if you
-  hear xruns. The format is `frames/samplerate`.
+
+**Do NOT set `PIPEWIRE_LATENCY`** in the manifest. It looks like a free
+latency win but it backfires: PipeWire's JACK shim reads the env var when
+the client connects and reconfigures the *whole* graph to that quantum
+for as long as Amp Locker is running. If the daemon's normal quantum is
+larger than the requested one (1024 is a very common desktop default),
+the forced drop causes crackling/xruns even with plenty of CPU headroom.
+Native installs do not set this env var and let PipeWire stay at its
+negotiated quantum — match that. The user can still pick a buffer size
+in Amp Locker's Audio Settings dialog, or globally tighten the graph with
+`pw-metadata 0 clock.force-quantum N` on the host.
 
 `--socket=pulseaudio` is kept as a safety-net fallback. JUCE will prefer
 JACK if the user picks it in the audio settings; otherwise it falls back

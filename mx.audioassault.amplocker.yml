@@ -90,8 +90,11 @@ finish-args:
   # at SCHED_OTHER, causing xruns at small buffer sizes. Required for any
   # low-latency operation on JACK or ALSA-direct.
   - --talk-name=org.freedesktop.RealtimeKit1
-  # Request a 128-frame quantum from PipeWire when the JACK shim is used.
-  # ~2.7 ms at 48 kHz. PipeWire honors this when the client connects via
-  # libjack.so.0 from the runtime. Lower this further (e.g. 64) if CPU
-  # headroom allows; raise it if you hear xruns.
-  - --env=PIPEWIRE_LATENCY=128/48000
+  # NOTE: do NOT set PIPEWIRE_LATENCY here. Forcing a fixed quantum (e.g.
+  # 128/48000) makes PipeWire reconfigure the whole graph down to that size
+  # for as long as Amp Locker is connected. If the daemon's normal quantum
+  # is larger (typical desktops run 1024), the 8x drop causes crackling /
+  # xruns even though there's plenty of CPU headroom. Native installs don't
+  # set this env var, so they get whatever quantum the user/daemon already
+  # negotiated. Let the user pick buffer size in Amp Locker's Audio Settings
+  # dialog (or via `pw-metadata 0 clock.force-quantum N`) instead.
