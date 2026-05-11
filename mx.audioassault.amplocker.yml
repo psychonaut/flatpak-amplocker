@@ -65,8 +65,21 @@ finish-args:
   - --filesystem=xdg-music:ro
   - --filesystem=xdg-documents
   - --filesystem=home/Audio Assault:create
-  # JUCE/LicenseManager stores activation tokens in ~/.config/Audio Assault/.
-  # Without this mount, the flatpak writes to its private XDG_CONFIG_HOME
-  # and the licence appears to "forget itself" between runs.
-  - --filesystem=xdg-config/Audio Assault:create
+  # JUCE on Linux hardcodes ~/.config (it does NOT honor $XDG_CONFIG_HOME for
+  # PropertiesFile or userApplicationDataDirectory paths). Amp Locker writes
+  # to three places under ~/.config:
+  #   - ~/.config/Amp Locker.settings       (window/audio state, JUCE properties)
+  #   - ~/.config/Amp Locker/               (midi.ini, scenes.ini)
+  #   - ~/.config/Audio Assault/            (activation tokens, snapshots, etc.)
+  # Flatpak cannot bind-mount the lone `Amp Locker.settings` *file*, so the
+  # parent directory has to be exposed. Subdir mounts (xdg-config/<sub>:create)
+  # would cover the two directory cases but not the top-level settings file,
+  # which then ends up on the sandbox tmpfs and is discarded on exit ("app
+  # forgets last state").
+  #
+  # Mount the whole xdg-config to make all three persist. Trade-off: this
+  # proprietary app gets read/write access to the rest of ~/.config. Reduce
+  # this scope once Audio Assault's binary stops hardcoding ~/.config (or if
+  # JUCE upstream starts honouring XDG_CONFIG_HOME).
+  - --filesystem=xdg-config
   - --env=TMPDIR=/var/tmp

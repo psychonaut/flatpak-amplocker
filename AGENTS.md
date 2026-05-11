@@ -50,17 +50,40 @@ In the flatpak, `~/Audio Assault` is exposed via
 `--filesystem=home/Audio Assault:create` and the bundled copy lives at
 `/app/share/AmpLocker/AmpLockerData/` for first-run sync.
 
-The app uses **two** persistent locations — both must be mounted:
+The app writes to four locations on a **native** install:
 
 1. `~/Audio Assault/UserData/Amp Locker/` — preset library, `keys.ini`,
-   `email.ini`, `subscription.ini`, `settings.ini`. Licence key itself lives
-   here.
-2. `~/.config/Audio Assault/` — JUCE `userApplicationDataDirectory`.
-   Activation tokens, Snapshots, SimpleIRLoader state. Without this mount,
-   the flatpak writes to its private `$XDG_CONFIG_HOME`
-   (`~/.var/app/.../config/`), which causes the app to "forget" its
-   activation across re-installs and prevents sharing state with a native
-   install. Mounted via `--filesystem=xdg-config/Audio Assault:create`.
+   `email.ini`, `subscription.ini`, `settings.ini`, `CabFileCache.dat`,
+   `menuFavourites.dat`, etc. Licence key file lives here.
+2. `~/.config/Amp Locker.settings` — JUCE `PropertiesFile` (window pos,
+   audio device, filter/auth state, last preset, …). A **file** at the top
+   level of `~/.config`, not a directory.
+3. `~/.config/Amp Locker/` — `midi.ini`, `scenes.ini`.
+4. `~/.config/Audio Assault/` — `UserData/Amp Locker/{email,keys,subscription}.ini`,
+   `SimpleIRLoader/`, `Snapshots/`. Activation tokens live in this tree.
+
+Locations 2–4 are the source of the "flatpak forgets last state" problem.
+JUCE on Linux **hardcodes** `~/.config` for these paths — it does **not**
+honour `$XDG_CONFIG_HOME` (verified by strace; setting the env var in a
+wrapper had no effect on file destinations). So the only way to make these
+persist is to expose `~/.config` itself.
+
+Since flatpak cannot bind-mount a single file (location 2 is the file
+`Amp Locker.settings` sitting at the root of `~/.config`), a per-subdir
+mount strategy is insufficient. The manifest therefore uses
+`--filesystem=xdg-config` (broad mount of `~/.config`) as the simplest
+reliable fix. Trade-off: the proprietary app gets read/write to other
+config dirs. Acceptable for now; revisit if upstream stops hardcoding
+`~/.config` or if a wrapper-based copy-in/copy-out trick proves viable.
+
+`AmpLockerData` is exposed via `--filesystem=home/Audio Assault:create`
+(covering location 1 and the `PluginData/` tree) and the bundled copy lives
+at `/app/share/AmpLocker/AmpLockerData/` for first-run sync.
+
+Things **not** to do (already tried, didn't work):
+- Setting `--env=XDG_CONFIG_HOME=...`: ignored by JUCE for these paths.
+- Wrapper that exports `XDG_CONFIG_HOME` before `exec`-ing the binary: same
+  reason. Pulse cookie respects the env var; Amp Locker's settings do not.
 
 ## Flatpak manifest gotchas
 
