@@ -16,3 +16,9 @@ rsync:
 
 flatpak:
     flatpak-builder --force-clean --user .build mx.audioassault.amplocker.yml
+
+flatpak-install:
+    flatpak-builder --force-clean --user --install .build mx.audioassault.amplocker.yml
+
+flatpak-run:
+    flatpak run mx.audioassault.amplocker
