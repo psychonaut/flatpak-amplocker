@@ -63,6 +63,7 @@ modules:
 
 finish-args:
   - --share=ipc
+  - --socket=wayland
   - --socket=x11
   - --socket=pulseaudio
   - --device=all
