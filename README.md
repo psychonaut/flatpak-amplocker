@@ -13,7 +13,7 @@ App-id: `mx.audioassault.amplocker`
 ## Requirements
 
 - `flatpak`, `flatpak-builder`
-- `just` (task runner) — optional but recommended
+- [`just`](https://github.com/casey/just) (task runner) — optional but recommended
 - The upstream `AmpLockerLinux.zip` placed at the repo root (not redistributed
   here)
 - Freedesktop runtime: `org.freedesktop.Platform//25.08` and matching SDK
