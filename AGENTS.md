@@ -10,13 +10,13 @@ IRs, NAMs, `newgfx.dat`).
 | Path | Purpose |
 | --- | --- |
 | `AmpLockerLinux.zip` | Upstream binary blob (not in VCS, ~200 MB). All build inputs come from here. |
-| `Justfile` | Task runner. `just build` = clean + unzip + rsync into `~/Audio Assault` (for native testing). `just flatpak` = build the flatpak. |
+| `Justfile` | Task runner. Default (`just`) = flatpak build. `just flatpak-install` = build + install. `just flatpak-run` = launch. Version auto-extracted from zip at build time. |
 | `mx.audioassault.amplocker.yml` | Flatpak manifest. App-id is `mx.audioassault.amplocker`. |
 | `mx.audioassault.amplocker.metainfo.xml` | AppStream metadata (required for Flathub & to silence flatpak-builder). |
 | `media/` | Shared assets pulled in by the flatpak build. |
 | `media/mx.audioassault.amplocker.desktop` | Desktop entry; basename matches the app-id (required by Flatpak/Flathub). |
 | `media/icons/{128,256,512}x*/apps/mx.audioassault.amplocker.png` | App icons. |
-| `amplocker/` | Working dir created by `just unzip`; contains the unpacked upstream tree. Disposable. |
+| `amplocker/` | Flatpak-builder working dir; contains unpacked zip contents during build. Disposable. |
 | `.build/`, `builddir/`, `.flatpak-builder/`, `repo/` | Flatpak-builder outputs. Disposable. |
 
 ## Upstream zip layout (after unpacking)
@@ -42,9 +42,7 @@ $HOME/Audio Assault/PluginData/Audio Assault/AmpLockerData/
 ```
 
 Note: directory name is `Audio Assault` (with a space), and the `Audio Assault`
-segment appears **twice** in the path. The Justfile's `rsync` target writes to
-`AudioAssault` (no space) inside `PluginData/` — that mismatch is a known bug;
-verify with the user before "fixing" it (they may rely on the legacy path).
+segment appears **twice** in the path.
 
 In the flatpak, `~/Audio Assault` is exposed via
 `--filesystem=home/Audio Assault:create` and the bundled copy lives at
@@ -84,6 +82,24 @@ Things **not** to do (already tried, didn't work):
 - Setting `--env=XDG_CONFIG_HOME=...`: ignored by JUCE for these paths.
 - Wrapper that exports `XDG_CONFIG_HOME` before `exec`-ing the binary: same
   reason. Pulse cookie respects the env var; Amp Locker's settings do not.
+
+## Version management
+
+The version is stored in `mx.audioassault.amplocker.metainfo.xml` under
+`<releases><release version="..."/>`. At build time, `just extract-version`
+runs automatically (dependency of both `flatpak` and `flatpak-install`):
+
+1. Reads `Amp Locker.vst3/Contents/Resources/moduleinfo.json` from the zip
+   (contains `"Version": "1.5.1a"`)
+2. Parses with `grep -o` + `cut` — **not** `jq`, the JSON has trailing commas
+   that break `jq`
+3. Replaces `<release version="...">` in metainfo.xml with `sed`
+
+**Do not** use a broad `version=` regex in sed — it will corrupt
+`<?xml version="1.0" encoding="UTF-8"?>`. Anchor on `<release version=`.
+
+The date in the release tag should be updated manually when a new upstream
+zip drops (match the zip's file modification date).
 
 ## Flatpak manifest gotchas
 
@@ -187,3 +203,6 @@ flatpak-builder --force-clean --user .build mx.audioassault.amplocker.yml
   failures are silent / mysterious.
 - Shared assets (icons, desktop file) live in `media/`. Anything new that
   both packaging targets would have shared belongs there.
+- Justfile recipes that use `$()` subshells must use a `#!/usr/bin/env bash`
+  shebang — `just`'s `$$` escaping conflicts with `$()`, and `sh` may reject
+  the syntax. With a shebang, write plain `$` (no escaping).
