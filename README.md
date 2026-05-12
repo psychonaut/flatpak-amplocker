@@ -14,7 +14,6 @@ App-id: `mx.audioassault.amplocker`
 
 - `flatpak`, `flatpak-builder`
 - `just` (task runner) — optional but recommended
-- `unzip`, `rsync`
 - The upstream `AmpLockerLinux.zip` placed at the repo root (not redistributed
   here)
 - Freedesktop runtime: `org.freedesktop.Platform//25.08` and matching SDK
@@ -37,9 +36,9 @@ Other targets:
 | Command              | Description                                              |
 | -------------------- | -------------------------------------------------------- |
 | `just flatpak`       | Build only (no install). Output in `.build/`.            |
-| `just build`         | Native-install path: unzip + rsync data into `~/Audio Assault`. Useful for testing without Flatpak. |
-| `just unzip`         | Just unpack the zip into `amplocker/` and clean cruft.   |
-| `just clean`         | Remove the `amplocker/` working dir.                     |
+| `just flatpak-install` | Build and install into user flatpak installation.      |
+| `just flatpak-run`   | Launch the installed flatpak.                            |
+| `just extract-version` | Extract version from zip and update metainfo.xml. Runs automatically before builds. |
 
 ## What's in the box
 
@@ -118,7 +117,7 @@ in the manifest and `AGENTS.md` for the rationale.
 | `media/mx.audioassault.amplocker.desktop`  | Desktop entry                                        |
 | `media/amplocker-wrapper.sh`               | Launcher: seeds `AmpLockerData` into home, then execs the binary |
 | `media/icons/{128,256,512}x*/apps/*.png`   | Application icons                                    |
-| `Justfile`                                 | Task runner                                          |
+| `Justfile`                                 | Task runner. Default = flatpak build. Version auto-extracted from zip. |
 | `AGENTS.md`                                | Detailed packaging notes, gotchas, validation tips   |
 | `AmpLockerLinux.zip`                       | Upstream blob (you provide; **not** in VCS)          |
 
