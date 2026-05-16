@@ -10,7 +10,7 @@ IRs, NAMs, `newgfx.dat`).
 | Path | Purpose |
 | --- | --- |
 | `AmpLockerLinux.zip` | Upstream binary blob (not in VCS, ~200 MB). All build inputs come from here. |
-| `Justfile` | Task runner. Default (`just`) = flatpak build. `just flatpak-install` = build + install. `just flatpak-run` = launch. Version auto-extracted from zip at build time. |
+| `Justfile` | Task runner. Default (`just`) = flatpak build. `just flatpak-install` = build + install. `just flatpak-bundle` = build + create `.flatpak` single-file bundle. `just flatpak-run` = launch. Version auto-extracted from zip at build time. |
 | `mx.audioassault.amplocker.yml` | Flatpak manifest. App-id is `mx.audioassault.amplocker`. |
 | `mx.audioassault.amplocker.metainfo.xml` | AppStream metadata (required for Flathub & to silence flatpak-builder). |
 | `media/` | Shared assets pulled in by the flatpak build. |

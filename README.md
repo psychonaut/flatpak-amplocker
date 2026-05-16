@@ -37,6 +37,7 @@ Other targets:
 | -------------------- | -------------------------------------------------------- |
 | `just flatpak`       | Build only (no install). Output in `.build/`.            |
 | `just flatpak-install` | Build and install into user flatpak installation.      |
+| `just flatpak-bundle` | Build and create a versioned `.flatpak` single-file bundle for distribution. |
 | `just flatpak-run`   | Launch the installed flatpak.                            |
 | `just extract-version` | Extract version from zip and update metainfo.xml. Runs automatically before builds. |
 
