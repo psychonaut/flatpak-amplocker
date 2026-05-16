@@ -7,6 +7,9 @@ AmpLockerLinux.zip
 builddir/
 repo/
 
+# Generated flatpak single-file bundles
+*.flatpak
+
 # Justfile working dir (unpacked upstream tree)
 amplocker/
 

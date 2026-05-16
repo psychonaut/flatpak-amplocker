@@ -1,10 +1,10 @@
 default: flatpak
 
 flatpak: extract-version
-    flatpak-builder --force-clean --user .build mx.audioassault.amplocker.yml
+    flatpak-builder --force-clean --user --repo=repo .build mx.audioassault.amplocker.yml
 
 flatpak-install: extract-version
-    flatpak-builder --force-clean --user --install .build mx.audioassault.amplocker.yml
+    flatpak-builder --force-clean --user --repo=repo --install .build mx.audioassault.amplocker.yml
 
 extract-version:
     #!/usr/bin/env bash
@@ -17,7 +17,7 @@ flatpak-bundle: flatpak
     #!/usr/bin/env bash
     set -euo pipefail
     VERSION=$(grep -o '<release version="[^"]*"' mx.audioassault.amplocker.metainfo.xml | head -1 | cut -d'"' -f2)
-    flatpak build-bundle .build/repo/ "mx.audioassault.amplocker-${VERSION}.flatpak" mx.audioassault.amplocker
+    flatpak build-bundle repo "mx.audioassault.amplocker-${VERSION}.flatpak" mx.audioassault.amplocker
     echo "Created mx.audioassault.amplocker-${VERSION}.flatpak"
 
 flatpak-run:
