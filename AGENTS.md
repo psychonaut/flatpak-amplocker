@@ -17,7 +17,8 @@ IRs, NAMs, `newgfx.dat`).
 | `media/mx.audioassault.amplocker.desktop` | Desktop entry; basename matches the app-id (required by Flatpak/Flathub). |
 | `media/icons/{128,256,512}x*/apps/mx.audioassault.amplocker.png` | App icons. |
 | `amplocker/` | Flatpak-builder working dir; contains unpacked zip contents during build. Disposable. |
-| `.build/`, `builddir/`, `.flatpak-builder/`, `repo/` | Flatpak-builder outputs. Disposable. |
+| `.build/`, `builddir/`, `.flatpak-builder/` | Flatpak-builder outputs. Disposable. |
+| `repo/` | Ostree repo created by `--repo=repo` (used by `flatpak-bundle`; disposable). |
 
 ## Upstream zip layout (after unpacking)
 
