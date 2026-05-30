@@ -47,7 +47,10 @@ segment appears **twice** in the path.
 
 In the flatpak, `~/Audio Assault` is exposed via
 `--filesystem=home/Audio Assault:create` and the bundled copy lives at
-`/app/share/AmpLocker/AmpLockerData/` for first-run sync.
+`/app/share/AmpLocker/AmpLockerData/`. On every launch the wrapper syncs
+bundled data into the user's home with `cp -Ruf` (update-only: copies
+only when source is newer), so upstream updates to presets, cabs, IRs,
+NAMs, and `newgfx.dat` replace stale local copies without redundant I/O.
 
 The app writes to four locations on a **native** install:
 
@@ -77,7 +80,7 @@ config dirs. Acceptable for now; revisit if upstream stops hardcoding
 
 `AmpLockerData` is exposed via `--filesystem=home/Audio Assault:create`
 (covering location 1 and the `PluginData/` tree) and the bundled copy lives
-at `/app/share/AmpLocker/AmpLockerData/` for first-run sync.
+at `/app/share/AmpLocker/AmpLockerData/` for sync on every launch.
 
 Things **not** to do (already tried, didn't work):
 - Setting `--env=XDG_CONFIG_HOME=...`: ignored by JUCE for these paths.

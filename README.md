@@ -49,14 +49,14 @@ building.
 ## What's in the box
 
 - **Launcher**: `/app/bin/mx.audioassault.amplocker` — a small shell wrapper
-  (`media/amplocker-wrapper.sh`) that seeds bundled data into the user's home
+  (`media/amplocker-wrapper.sh`) that syncs bundled data into the user's home
   before `exec`-ing the real binary.
 - **Standalone binary**: `/app/libexec/amplocker` (originally `Amp Locker Standalone`)
 - **VST3**: installed to `/app/extensions/Plugins/vst3/Amp Locker.vst3`
 - **LV2**: installed to `/app/extensions/Plugins/lv2/Amp Locker.lv2`
 - **Bundled data** (presets, cabs, IRs, NAMs, `newgfx.dat`): shipped read-only
-  at `/app/share/AmpLocker/AmpLockerData/` and topped up into the user's home
-  on every launch.
+  at `/app/share/AmpLocker/AmpLockerData/` and synced into the user's home
+  on every launch (only changed and new files are copied).
 
 ## Runtime data layout
 
@@ -68,26 +68,23 @@ Amp Locker looks for its preset/IR/NAM tree at:
 
 (Yes, the `Audio Assault` segment appears twice — that's upstream behaviour.)
 
-### First-run seeding
+### Data sync
 
 On every launch the wrapper does:
 
 ```sh
-cp -Rn /app/share/AmpLocker/AmpLockerData/. \
-       "$HOME/Audio Assault/PluginData/Audio Assault/AmpLockerData/"
+cp -Ruf /app/share/AmpLocker/AmpLockerData/. \
+        "$HOME/Audio Assault/PluginData/Audio Assault/AmpLockerData/"
 ```
 
-`-n` (no-clobber) means:
+`-Ruf` (recursive, update, force) means:
 
-- **First launch**: the full bundled tree (~177 MB, ~700 files) is copied
-  into the user's home.
-- **Subsequent launches**: only files that don't already exist are copied.
-  Your edits to bundled presets and any extra presets/IRs you've added are
-  preserved.
-- **Caveat**: deleting a bundled file makes it reappear on the next launch.
-  This is the deliberate trade-off of the "always top-up" strategy (vs. a
-  one-shot sentinel marker), so that new presets/IRs that ship with future
-  upstream releases land automatically.
+- **New files**: copied on first launch.
+- **Updated files**: copied only when the source timestamp is newer than
+  the destination (i.e. after a flatpak update with new upstream data).
+- **Unchanged files**: skipped entirely — no redundant I/O.
+- **User-added files**: unaffected (only files shipped in the flatpak are
+  considered, and only when newer).
 
 JUCE on Linux hardcodes `~/.config` for `PropertiesFile` /
 `userApplicationDataDirectory` paths, so the manifest mounts the whole
@@ -121,7 +118,7 @@ in the manifest and `AGENTS.md` for the rationale.
 | `mx.audioassault.amplocker.yml`            | Flatpak manifest (downloads zip from S3)             |
 | `mx.audioassault.amplocker.metainfo.xml`   | AppStream metadata                                   |
 | `media/mx.audioassault.amplocker.desktop`  | Desktop entry                                        |
-| `media/amplocker-wrapper.sh`               | Launcher: seeds `AmpLockerData` into home, then execs the binary |
+| `media/amplocker-wrapper.sh`               | Launcher: syncs `AmpLockerData` into home, then execs the binary |
 | `media/icons/{128,256,512}x*/apps/*.png`   | Application icons                                    |
 | `Justfile`                                 | Task runner. Default = flatpak build. Auto-downloads zip and extracts version. |
 | `AGENTS.md`                                | Detailed packaging notes, gotchas, validation tips   |
