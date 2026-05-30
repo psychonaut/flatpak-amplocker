@@ -9,8 +9,8 @@ IRs, NAMs, `newgfx.dat`).
 
 | Path | Purpose |
 | --- | --- |
-| `AmpLockerLinux.zip` | Upstream binary blob (not in VCS, ~200 MB). All build inputs come from here. |
-| `Justfile` | Task runner. Default (`just`) = flatpak build. `just flatpak-install` = build + install. `just flatpak-bundle` = build + create `.flatpak` single-file bundle. `just flatpak-run` = launch. Version auto-extracted from zip at build time. |
+| `AmpLockerLinux.zip` | Upstream binary blob (auto-downloaded from S3, cached locally; not in VCS, ~200 MB). All build inputs come from here. |
+| `Justfile` | Task runner. Default (`just`) = flatpak build. `just flatpak-install` = build + install. `just flatpak-bundle` = build + create `.flatpak` single-file bundle. `just flatpak-run` = launch. Auto-downloads zip from S3 if missing, then extracts version and updates metainfo before building. |
 | `mx.audioassault.amplocker.yml` | Flatpak manifest. App-id is `mx.audioassault.amplocker`. |
 | `mx.audioassault.amplocker.metainfo.xml` | AppStream metadata (required for Flathub & to silence flatpak-builder). |
 | `media/` | Shared assets pulled in by the flatpak build. |
@@ -87,17 +87,27 @@ Things **not** to do (already tried, didn't work):
 ## Version management
 
 The version is stored in `mx.audioassault.amplocker.metainfo.xml` under
-`<releases><release version="..."/>`. At build time, `just extract-version`
+`<releases><release version="..."/>`. At build time, `just download-and-extract-version`
 runs automatically (dependency of both `flatpak` and `flatpak-install`):
 
-1. Reads `Amp Locker.vst3/Contents/Resources/moduleinfo.json` from the zip
-   (contains `"Version": "1.5.1a"`)
-2. Parses with `grep -o` + `cut` — **not** `jq`, the JSON has trailing commas
+1. Downloads `AmpLockerLinux.zip` from S3 if not cached locally
+   (`https://audioassaultdownloads.s3.amazonaws.com/AmpLocker/AmpLocker109/AmpLockerLinux.zip`)
+2. Reads `Amp Locker.vst3/Contents/Resources/moduleinfo.json` from the zip
+   (contains `"Version": "1.5.2"` or similar)
+3. Parses with `grep -o` + `cut` — **not** `jq`, the JSON has trailing commas
    that break `jq`
-3. Replaces `<release version="...">` in metainfo.xml with `sed`
+4. Replaces `<release version="...">` in metainfo.xml with `sed`
 
 **Do not** use a broad `version=` regex in sed — it will corrupt
 `<?xml version="1.0" encoding="UTF-8"?>`. Anchor on `<release version=`.
+
+The local `AmpLockerLinux.zip` is kept as a cache for version extraction.
+Delete it to force a re-download when checking for upstream updates:
+
+```bash
+rm AmpLockerLinux.zip
+just flatpak
+```
 
 The date in the release tag should be updated manually when a new upstream
 zip drops (match the zip's file modification date).
@@ -125,8 +135,9 @@ zip drops (match the zip's file modification date).
   Flatpak-builder's `archive` source defaults to `strip-components: 1`, which
   silently destroys the bundle structure (turns `.vst3` and `.lv2` into loose
   files). The manifest **must** set `strip-components: 0` on this source.
-- The `AmpLockerLinux.zip` source path is relative to the manifest's directory.
-  Don't hardcode absolute paths there.
+- The zip is downloaded from S3 (`https://audioassaultdownloads.s3.amazonaws.com/AmpLocker/AmpLocker109/AmpLockerLinux.zip`)
+  with a verified SHA256 checksum. The manifest uses `url:` and `sha256:` for
+  the archive source, not a local `path:`.
 
 ## Audio latency
 
