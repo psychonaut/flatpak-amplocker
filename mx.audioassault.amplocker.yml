@@ -11,15 +11,15 @@ modules:
     buildsystem: simple
     build-commands:
       # Standalone binary — installed to libexec; the launcher in /app/bin
-      # wraps it so we can sync AmpLockerData into the user's home on
-      # every launch (see amplocker-wrapper.sh).
+      # symlinks AmpLockerData into the user's home on every launch
+      # (see amplocker-wrapper.sh).
       - install -Dm755 "Amp Locker Standalone" /app/libexec/amplocker
       - install -Dm755 amplocker-wrapper.sh /app/bin/mx.audioassault.amplocker
 
       # Bundled preset/IR/NAM/gfx data — shipped read-only inside the flatpak.
-      # The wrapper script syncs this into
+      # The wrapper script symlinks this into
       # ~/Audio Assault/PluginData/Audio Assault/AmpLockerData/ on every
-      # launch (cp -Ruf: update-only, copies only when source is newer).
+      # launch. AmpLockerData is immutable, so no copy/sync is needed.
       - mkdir -p "/app/share/AmpLocker/AmpLockerData"
       - cp -r AmpLockerData/. "/app/share/AmpLocker/AmpLockerData/"
 

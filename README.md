@@ -49,7 +49,7 @@ building.
 ## What's in the box
 
 - **Launcher**: `/app/bin/mx.audioassault.amplocker` — a small shell wrapper
-  (`media/amplocker-wrapper.sh`) that syncs bundled data into the user's home
+  (`media/amplocker-wrapper.sh`) that symlinks bundled data into the user's home
   before `exec`-ing the real binary.
 - **Standalone binary**: `/app/libexec/amplocker` (originally `Amp Locker Standalone`)
 - **VST3**: installed to `/app/extensions/Plugins/vst3/Amp Locker.vst3`
@@ -73,18 +73,12 @@ Amp Locker looks for its preset/IR/NAM tree at:
 On every launch the wrapper does:
 
 ```sh
-cp -Ruf /app/share/AmpLocker/AmpLockerData/. \
-        "$HOME/Audio Assault/PluginData/Audio Assault/AmpLockerData/"
+ln -sfn /app/share/AmpLocker/AmpLockerData \
+        "$HOME/Audio Assault/PluginData/Audio Assault/AmpLockerData"
 ```
 
-`-Ruf` (recursive, update, force) means:
-
-- **New files**: copied on first launch.
-- **Updated files**: copied only when the source timestamp is newer than
-  the destination (i.e. after a flatpak update with new upstream data).
-- **Unchanged files**: skipped entirely — no redundant I/O.
-- **User-added files**: unaffected (only files shipped in the flatpak are
-  considered, and only when newer).
+Since AmpLockerData is immutable, a symlink avoids per-launch I/O and
+upstream updates take effect instantly.
 
 JUCE on Linux hardcodes `~/.config` for `PropertiesFile` /
 `userApplicationDataDirectory` paths, so the manifest mounts the whole
@@ -118,7 +112,7 @@ in the manifest and `AGENTS.md` for the rationale.
 | `mx.audioassault.amplocker.yml`            | Flatpak manifest (downloads zip from S3)             |
 | `mx.audioassault.amplocker.metainfo.xml`   | AppStream metadata                                   |
 | `media/mx.audioassault.amplocker.desktop`  | Desktop entry                                        |
-| `media/amplocker-wrapper.sh`               | Launcher: syncs `AmpLockerData` into home, then execs the binary |
+| `media/amplocker-wrapper.sh`               | Launcher: symlinks `AmpLockerData` into home, then execs the binary |
 | `media/icons/{128,256,512}x*/apps/*.png`   | Application icons                                    |
 | `Justfile`                                 | Task runner. Default = flatpak build. Auto-downloads zip and extracts version. |
 | `AGENTS.md`                                | Detailed packaging notes, gotchas, validation tips   |

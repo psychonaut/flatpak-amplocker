@@ -47,10 +47,13 @@ segment appears **twice** in the path.
 
 In the flatpak, `~/Audio Assault` is exposed via
 `--filesystem=home/Audio Assault:create` and the bundled copy lives at
-`/app/share/AmpLocker/AmpLockerData/`. On every launch the wrapper syncs
-bundled data into the user's home with `cp -Ruf` (update-only: copies
-only when source is newer), so upstream updates to presets, cabs, IRs,
-NAMs, and `newgfx.dat` replace stale local copies without redundant I/O.
+`/app/share/AmpLocker/AmpLockerData/`. The wrapper symlinks this
+directory into the user's home — AmpLockerData is immutable, so a
+symlink avoids per-launch I/O and upstream updates take effect instantly.
+
+The symlink target `/app/share/...` is only valid inside the flatpak
+sandbox (flatpak bind-mounts the installation to `/app`). Outside the
+sandbox the symlink is a dangling pointer — that's expected and harmless.
 
 The app writes to four locations on a **native** install:
 
