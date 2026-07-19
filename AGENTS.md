@@ -118,6 +118,42 @@ just flatpak
 The date in the release tag should be updated manually when a new upstream
 zip drops (match the zip's file modification date).
 
+### Upstream-zip refresh: the three things that must move together
+
+When Audio Assault ships a new `AmpLockerLinux.zip`, **three** files have
+to stay in sync — and only two of them are updated automatically:
+
+| File | What changes | Updated by |
+| --- | --- | --- |
+| `AmpLockerLinux.zip` (project root) | binary content | Justfile (`download-and-extract-version`) |
+| `mx.audioassault.amplocker.metainfo.xml` | `<release version="…"/>` | Justfile (parsed from `moduleinfo.json`) |
+| `mx.audioassault.amplocker.yml` | archive `sha256:` | **manual** |
+
+The third one is the gotcha. The project-root zip is used **only** for
+version extraction — `flatpak-builder` does not read it. It resolves the
+archive source by `url:` + `sha256:` and serves the file from
+`.flatpak-builder/downloads/<sha256>/AmpLockerLinux.zip`. So if you
+forget to bump the manifest hash after `rm AmpLockerLinux.zip && just
+flatpak`, the build silently uses the *old* cached zip while the
+metainfo advertises the new version. Symptom: `flatpak info` reports
+the new version, but the running binary is the old one — exactly the
+"1.5.3 advertised, 1.5.2 running" report that motivated this section.
+
+`download-and-extract-version` prunes any
+`.flatpak-builder/downloads/<old-sha256>/` directories at the end of
+the recipe, so the dead ~200 MB cache entry doesn't accumulate after
+a refresh. No manual cleanup needed.
+
+Refresh workflow:
+
+```bash
+rm AmpLockerLinux.zip
+sha256sum AmpLockerLinux.zip          # note the hash
+just flatpak                          # refreshes zip, updates metainfo
+$EDITOR mx.audioassault.amplocker.yml # paste the new sha256 into the archive source
+just flatpak-install                  # now actually builds with the new zip
+```
+
 ## Flatpak manifest gotchas
 
 - App-id: `mx.audioassault.amplocker` (lowercase). Desktop file, icon names,

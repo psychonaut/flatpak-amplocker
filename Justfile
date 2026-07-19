@@ -28,6 +28,19 @@ download-and-extract-version:
     sed -i "s|<release version=\"[^\"]*\"|<release version=\"$VERSION\"|" mx.audioassault.amplocker.metainfo.xml
     echo "Updated metainfo.xml to version $VERSION"
 
+    # Prune stale flatpak-builder download caches (one directory per zip sha256).
+    # After a zip refresh the old <sha256>/ dir is dead weight — ~200 MB —
+    # and is the most common reason a fresh build silently uses the old binary.
+    if [[ -d .flatpak-builder/downloads ]]; then
+        LOCAL_SHA=$(sha256sum "$ZIP_FILE" | cut -d' ' -f1)
+        for d in .flatpak-builder/downloads/*/; do
+            [[ -d "$d" ]] || continue
+            [[ "$(basename "$d")" == "$LOCAL_SHA" ]] && continue
+            echo "Pruning stale download cache: $(basename "$d")"
+            rm -rf "$d"
+        done
+    fi
+
 flatpak-bundle: flatpak
     #!/usr/bin/env bash
     set -euo pipefail
