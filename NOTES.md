@@ -1,5 +1,18 @@
 # Session Notes & Observations
 
+## Version 1.5.5 Upgrade (2026-08-16)
+
+### Successful Update Workflow
+1. ✅ Removed old `AmpLockerLinux.zip` to force re-download
+2. ✅ Downloaded v1.5.5 from S3 (227.5 MB)
+3. ✅ Extracted version from `Amp Locker.vst3/Contents/Resources/moduleinfo.json`
+4. ✅ Calculated new SHA256: `2d229fe96112aff59422b6f3b16d43d17282f94143eb26cad574977d25781264`
+5. ✅ Updated `mx.audioassault.amplocker.yml` with new hash (also fixed a stray indentation issue in the `sources:` block while there)
+6. ✅ `just flatpak-install` auto-updated `metainfo.xml` version; release `date` bumped manually to match zip download date (2026-08-16), per the "match the zip's file modification date" convention
+7. ✅ Build completed, installed, `flatpak info` confirms Wersja: 1.5.5
+
+No new gotchas this round — same three-file sync procedure as 1.5.4 applied cleanly.
+
 ## Version 1.5.4 Upgrade (2026-07-24)
 
 ### Successful Update Workflow
@@ -55,6 +68,9 @@ When Audio Assault ships a new `AmpLockerLinux.zip`:
    git push
    ```
 
+### Known Harmless Warnings
+- **libcurl version mismatch**: Flatpak prints `/app/libexec/amplocker: /usr/lib/x86_64-linux-gnu/libcurl.so.4: no version information available` on startup. This is cosmetic; the binary was compiled against a different libcurl version and expects version symbols that the system doesn't provide, but the app loads and runs fine. This cannot be fixed without the upstream source code.
+
 ### No Known Issues
 - JACK/audio latency tuning remains stable (RTKit D-Bus exposure, no PIPEWIRE_LATENCY forced)
 - Filesystem mounts working (xdg-config for JUCE prefs, home/Audio Assault for presets)
@@ -63,5 +79,5 @@ When Audio Assault ships a new `AmpLockerLinux.zip`:
 
 ---
 
-**Last updated**: 2026-07-24  
+**Last updated**: 2026-08-16 (v1.5.5 upgrade)  
 **Maintainer contact**: See project README for upstream Audio Assault info
