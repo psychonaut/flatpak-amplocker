@@ -71,7 +71,28 @@ When Audio Assault ships a new `AmpLockerLinux.zip`:
 ### Known Harmless Warnings
 - **libcurl version mismatch**: Flatpak prints `/app/libexec/amplocker: /usr/lib/x86_64-linux-gnu/libcurl.so.4: no version information available` on startup. This is cosmetic; the binary was compiled against a different libcurl version and expects version symbols that the system doesn't provide, but the app loads and runs fine. This cannot be fixed without the upstream source code.
 
-### No Known Issues
+### Known Upstream Issues (Not Packaging Bugs)
+- **Missing graphics on new amp models after upgrade (found in 1.5.5)**: selecting an amp
+  model that didn't exist in the previous version renders with no graphics (looks like it's
+  using stale previous-version UI data). Investigated and **ruled out** a packaging/flatpak
+  bug:
+  - `~/Audio Assault/PluginData/Audio Assault/AmpLockerData` symlink correctly points to
+    `/app/share/AmpLocker/AmpLockerData` (not a stale real directory nesting the symlink).
+  - Active flatpak deployment dir matched the commit hash reported by `flatpak info` (no
+    orphaned/stale deployment).
+  - `AmpLockerData` contents (Cabs/, IRs/, NAMs/, Presets/, newgfx.dat) matched 1:1 between
+    the upstream zip and the installed flatpak.
+  - `newgfx.dat` (149,513,153 bytes — the monolithic graphics blob) sha256 is **identical**
+    between the zip and the installed copy: `23328e7c3521329736e30e369f285fbfe8e62744400007add5d8320d6c8db216`.
+  - No stale amp-model/graphics-index cache found in `~/Audio Assault/UserData/Amp Locker/`,
+    `~/.config/Audio Assault/`, `~/.config/Amp Locker/`, or `~/.config/Amp Locker.settings`
+    (CabFileCache.dat is Cabs-specific, unrelated, and was already fresh).
+  - **Conclusion**: packaging is byte-for-byte correct; this is most likely an upstream
+    application-level bug (would reproduce on a native Linux install too). Try a full quit
+    + relaunch first (rules out a stale in-memory asset index carried over from the running
+    process across the upgrade); if it persists, report to Audio Assault directly.
+
+### No Known Packaging Issues
 - JACK/audio latency tuning remains stable (RTKit D-Bus exposure, no PIPEWIRE_LATENCY forced)
 - Filesystem mounts working (xdg-config for JUCE prefs, home/Audio Assault for presets)
 - VST3 and LV2 plugins install to correct extension directories
