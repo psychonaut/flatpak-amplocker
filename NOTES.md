@@ -1,5 +1,18 @@
 # Session Notes & Observations
 
+## Version 1.5.6 Upgrade (2026-08-30)
+
+### Successful Update Workflow
+1. ✅ Removed old `AmpLockerLinux.zip` to force re-download
+2. ✅ Downloaded v1.5.6 from S3 (229.4 MB)
+3. ✅ Extracted version from `Amp Locker.vst3/Contents/Resources/moduleinfo.json`, `just download-and-extract-version` auto-updated `metainfo.xml` to 1.5.6 and pruned the stale 1.5.5 download cache
+4. ✅ Calculated new SHA256: `a4787848de956fb08538e403fbd5452e535c87496fe1d53c1165e3484ebc8aff`
+5. ✅ Updated `mx.audioassault.amplocker.yml` with new hash
+6. ✅ Release `date` bumped manually to match zip download date (2026-08-30)
+7. ✅ `just flatpak-install` build completed, installed, `flatpak info` confirms Wersja: 1.5.6
+
+No new gotchas this round — same three-file sync procedure as 1.5.5 applied cleanly.
+
 ## Version 1.5.5 Upgrade (2026-08-16)
 
 ### Successful Update Workflow
