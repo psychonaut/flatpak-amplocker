@@ -15,7 +15,10 @@ IRs, NAMs, `newgfx.dat`).
 | `mx.audioassault.amplocker.metainfo.xml` | AppStream metadata (required for Flathub & to silence flatpak-builder). |
 | `media/` | Shared assets pulled in by the flatpak build. |
 | `media/mx.audioassault.amplocker.desktop` | Desktop entry; basename matches the app-id (required by Flatpak/Flathub). |
+| `media/amplocker-wrapper.sh` | Launcher installed as `/app/bin/mx.audioassault.amplocker`; symlinks `AmpLockerData` into the user's home, then `exec`s the real binary. |
 | `media/icons/{128,256,512}x*/apps/mx.audioassault.amplocker.png` | App icons. |
+| `README.md` | User-facing packaging overview (build/install/run, data layout). |
+| `NOTES.md` | Running session log of upstream version bumps + known upstream (non-packaging) issues. Check here before re-investigating a "weird" runtime symptom. |
 | `amplocker/` | Flatpak-builder working dir; contains unpacked zip contents during build. Disposable. |
 | `.build/`, `builddir/`, `.flatpak-builder/` | Flatpak-builder outputs. Disposable. |
 | `repo/` | Ostree repo created by `--repo=repo` (used by `flatpak-bundle`; disposable). |
@@ -154,6 +157,18 @@ $EDITOR mx.audioassault.amplocker.yml # paste the new sha256 into the archive so
 just flatpak-install                  # now actually builds with the new zip
 ```
 
+After a successful upgrade, follow the established convention (see `NOTES.md`
+for the full history): add a dated entry to `NOTES.md` summarizing the
+version, new sha256, and any new gotchas, then commit and push:
+
+```bash
+git add -A && git commit -m "Update to Amp Locker X.Y.Z"
+git push
+```
+
+Also bump the `date=` attribute on the `<release>` tag in metainfo.xml to
+match the zip's download date — the Justfile only updates `version=`.
+
 ## Flatpak manifest gotchas
 
 - App-id: `mx.audioassault.amplocker` (lowercase). Desktop file, icon names,
@@ -228,6 +243,18 @@ Things tried that don't help:
 - Bumping `PIPEWIRE_QUANTUM` instead of `PIPEWIRE_LATENCY`: the former is
   the global daemon hint, the latter is per-client and is what JUCE/JACK
   apps actually pick up.
+
+## Known non-packaging issues (don't re-investigate)
+
+- **`libcurl.so.4: no version information available` on startup**: cosmetic.
+  The binary was compiled against a different libcurl and expects version
+  symbols the runtime doesn't provide; app loads and runs fine regardless.
+- **Missing graphics on some amp models after a version bump**: investigated
+  in the 1.5.5 upgrade and ruled out as a packaging bug — the `AmpLockerData`
+  symlink, deployment dir, and `newgfx.dat` sha256 all matched byte-for-byte
+  between the zip and the installed flatpak. Most likely an upstream
+  in-memory asset-index issue (try full quit + relaunch first). See
+  `NOTES.md` for the full investigation before spending time on this again.
 
 ## Validation commands
 
