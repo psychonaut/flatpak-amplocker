@@ -1,5 +1,31 @@
 # Session Notes & Observations
 
+## Version 1.5.8 Upgrade (2026-09-27)
+
+### Successful Update Workflow
+1. ✅ Removed old `AmpLockerLinux.zip` to force re-download
+2. ✅ Downloaded v1.5.8 from S3 (233.8 MB)
+3. ✅ Extracted version from `Amp Locker.vst3/Contents/Resources/moduleinfo.json` → 1.5.8, `just download-and-extract-version` auto-updated `metainfo.xml` and pruned the stale 1.5.7 download cache
+4. ✅ Calculated new SHA256: `7947149cf7f33f857b78c551c47ebe7920881a277b97dc82281078ad3a588012`
+5. ✅ Updated `mx.audioassault.amplocker.yml` with new hash
+6. ✅ Release `date` bumped manually to match zip's internal file date (2026-09-26)
+7. ✅ `just flatpak-install` build completed, installed, `flatpak info` confirms Wersja: 1.5.8
+8. ✅ Verified the deployed payload (not just metadata): `/app/extensions/Plugins/vst3/Amp Locker.vst3/Contents/Resources/moduleinfo.json` reports `"Version": "1.5.8"`
+
+Environment hiccup, not a packaging bug: first `just flatpak-install` failed
+with `Failed to init: Unable to find sdk org.freedesktop.Sdk version 25.08` —
+only the Platform runtime was installed, never the SDK. Fixed with
+`flatpak install --system org.freedesktop.Sdk//25.08` (flathub remote is
+system-only on this machine, no `--user` remote). Build then succeeded
+unchanged.
+
+Minor verification note: a `find` over the deployed `files/` tree run
+*immediately* after install briefly showed stale 1.5.7 `moduleinfo.json`
+hits alongside the 1.5.8 one — a race with flatpak finalizing the new
+deployment. Re-running after the deploy settled shows exactly one
+`moduleinfo.json` (1.5.8), matching the zip. If verifying payload versions,
+don't trust results captured mid-deploy.
+
 ## Version 1.5.7 Upgrade (2026-09-19)
 
 ### Successful Update Workflow
