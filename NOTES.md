@@ -1,5 +1,20 @@
 # Session Notes & Observations
 
+## Version 1.5.9 Upgrade (2026-10-12)
+
+### Successful Update Workflow
+1. ✅ Removed old `AmpLockerLinux.zip` (1.5.8) to force re-download
+2. ✅ Downloaded v1.5.9 from S3 (241.3 MB); upstream `Last-Modified` was 2026-10-09
+3. ✅ `just download-and-extract-version` read version 1.5.9, updated `metainfo.xml`, and pruned the 1.5.8 download cache
+4. ✅ New SHA256: `20322b7c6f236d1a387ce40b73cab0d420abd49259f0fa5beb874f4bd7e3a805`
+5. ✅ Updated `mx.audioassault.amplocker.yml` with new hash
+6. ✅ Release `date` set to 2026-10-09 to match the upstream file date
+7. ✅ `just flatpak` build succeeded (not installed)
+8. ✅ YAML parse, `flatpak-builder --show-manifest`, and `appstreamcli validate` all pass
+
+---
+
+
 ## Version 1.5.8 Upgrade (2026-09-27)
 
 ### Successful Update Workflow
@@ -86,7 +101,7 @@ The three-file sync requirement was properly executed:
   - **Critical gotcha**: If the manifest hash is not updated, flatpak-builder uses the old cached zip while metainfo advertises the new version
   - Symptom: `flatpak info` shows new version but binary is old
   - Solution: Always verify the hash in the manifest matches the zip before building
-  
+
 - `AmpLockerLinux.zip` cache cleanup is automatic — `download-and-extract-version` prunes stale `.flatpak-builder/downloads/<old-sha256>/` entries (~200 MB each)
 
 #### Build Performance
@@ -105,7 +120,7 @@ When Audio Assault ships a new `AmpLockerLinux.zip`:
 1. **Remove the cached zip**: `rm AmpLockerLinux.zip`
 2. **Run the build**: `just flatpak`
    - This will download the new zip and auto-update `metainfo.xml`
-3. **Extract the version** to confirm upgrade: 
+3. **Extract the version** to confirm upgrade:
    ```bash
    unzip -p AmpLockerLinux.zip "Amp Locker.vst3/Contents/Resources/moduleinfo.json" | grep -o '"Version": "[^"]*"'
    ```
@@ -153,5 +168,5 @@ When Audio Assault ships a new `AmpLockerLinux.zip`:
 
 ---
 
-**Last updated**: 2026-08-16 (v1.5.5 upgrade)  
+**Last updated**: 2026-08-16 (v1.5.5 upgrade)
 **Maintainer contact**: See project README for upstream Audio Assault info
