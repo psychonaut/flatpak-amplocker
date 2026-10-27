@@ -51,7 +51,7 @@ modules:
       - type: archive
         url: https://audioassaultdownloads.s3.amazonaws.com/AmpLocker/AmpLocker109/AmpLockerLinux.zip
         strip-components: 0
-        sha256: 20322b7c6f236d1a387ce40b73cab0d420abd49259f0fa5beb874f4bd7e3a805
+        sha256: c4c283339f7731bc3a3fcb0a0cc24c713767b0ec0b81cebc0a0a940f00556006
       - type: file
         path: media/mx.audioassault.amplocker.desktop
       - type: file

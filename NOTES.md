@@ -1,5 +1,23 @@
 # Session Notes & Observations
 
+## Version 1.6.0 Upgrade (2026-10-27)
+
+### Successful Update Workflow
+1. ✅ Detected a new upstream zip via `curl -I` on the S3 URL (`Last-Modified` 2026-10-26, 256,353,796 bytes vs. 253,106,276 local) — same URL path (`AmpLocker109/`) as before
+2. ✅ Moved old `AmpLockerLinux.zip` (1.5.9) aside and ran `just download-and-extract-version`: downloaded v1.6.0 (244.4 MiB), read version 1.6.0 from `moduleinfo.json`, updated `metainfo.xml`, and pruned the 1.5.9 download cache
+3. ✅ New SHA256: `c4c283339f7731bc3a3fcb0a0cc24c713767b0ec0b81cebc0a0a940f00556006`
+4. ✅ Updated `mx.audioassault.amplocker.yml` with new hash
+5. ✅ Release `date` set to 2026-10-26 to match the upstream file date
+6. ✅ `unzip -t` clean; top-level zip layout identical to 1.5.9 (no manifest changes needed)
+7. ✅ YAML parse and `appstreamcli validate` pass; `just flatpak-install` succeeded
+8. ✅ Installed copy verified: `newgfx.dat` sha256 matches the zip (`e58c712d45a6abeea1015fd34007a10b6e56de0b657b567b8d140ca249f9a2a6`) and the installed binary embeds the `1.6.0` string
+
+Note: the installed `libexec/amplocker` and plugin `.so` hashes do **not** equal the zip's —
+flatpak-builder strips binaries (and exports a `.Debug` extension), so compare `newgfx.dat` /
+embedded version strings instead of raw binary hashes when verifying an upgrade.
+
+---
+
 ## Version 1.5.9 Upgrade (2026-10-12)
 
 ### Successful Update Workflow
