@@ -1,5 +1,19 @@
 # Session Notes & Observations
 
+## Version 1.6.1 Upgrade (2026-11-27)
+
+### Successful Update Workflow
+1. ✅ Detected a new upstream zip via `curl -I` on the S3 URL (`Last-Modified` 2026-11-27, 278,686,092 bytes vs. 256,353,796 local)
+2. ✅ Removed old `AmpLockerLinux.zip` (1.6.0) and ran `just flatpak`: downloaded v1.6.1 (265.7 MiB), read version 1.6.1 from `moduleinfo.json`, updated `metainfo.xml`, and pruned the 1.6.0 download cache
+3. ✅ New SHA256: `803f979f01bd57cf7b9ca8731a1ad34b23639412c299864c6eeafff7e9f31e92`
+4. ✅ Build failed first on the checksum mismatch, as expected, until the manifest hash was updated
+5. ✅ Updated `mx.audioassault.amplocker.yml` with new hash
+6. ✅ Release `date` set to 2026-11-27 to match the upstream file date
+7. ✅ YAML parse and `appstreamcli validate` pass; `just flatpak` and `just flatpak-install` succeeded
+8. ✅ Installed copy verified: `newgfx.dat` sha256 matches the zip (`6d823cead09a5f17bb42fe4d9f56b946eaaf2195de454cc18ea1d7c72a0caf66`)
+
+---
+
 ## Version 1.6.0 Upgrade (2026-10-27)
 
 ### Successful Update Workflow
